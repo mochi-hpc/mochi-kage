@@ -1,5 +1,5 @@
 /*
- * (C) 2020 The University of Chicago
+ * (C) 2024 The University of Chicago
  *
  * See COPYRIGHT in top-level directory.
  */
@@ -85,19 +85,17 @@ class Backend {
     virtual std::string getConfig() const = 0;
 
     /**
-     * @brief Prints Hello World.
-     */
-    virtual void sayHello() = 0;
-
-    /**
-     * @brief Compute the sum of two integers.
+     * @brief Forward the input data to the backend and
+     * call output_cb on the obtained output data.
      *
-     * @param x first integer
-     * @param y second integer
+     * @param input Input data to forward.
+     * @param input_size Size of the input data.
+     * @param output_cb Callback to invoke on the output.
      *
-     * @return a Result containing the result.
+     * @return a Result containing the result of the operation.
      */
-    virtual Result<int32_t> computeSum(int32_t x, int32_t y) = 0;
+    virtual Result<bool> forward(const char* input, size_t input_size,
+                                 const std::function<void(const char*, size_t)>& output_cb) = 0;
 
     /**
      * @brief Destroys the underlying proxy.

@@ -19,4 +19,3 @@ find_dependency (PkgConfig)
 include ("${CMAKE_CURRENT_LIST_DIR}/kage-targets.cmake")
 
 add_library (kage::server ALIAS kage-server)
-add_library (kage::client ALIAS kage-client)

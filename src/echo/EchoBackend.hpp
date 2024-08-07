@@ -1,19 +1,19 @@
 /*
- * (C) 2020 The University of Chicago
+ * (C) 2024 The University of Chicago
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __DUMMY_BACKEND_HPP
-#define __DUMMY_BACKEND_HPP
+#ifndef __ECHO_BACKEND_HPP
+#define __ECHO_BACKEND_HPP
 
 #include <kage/Backend.hpp>
 
 using json = nlohmann::json;
 
 /**
- * Dummy implementation of an kage Backend.
+ * Echo implementation of an kage Backend.
  */
-class DummyProxy : public kage::Backend {
+class EchoProxy : public kage::Backend {
 
     thallium::engine m_engine;
     json             m_config;
@@ -23,42 +23,37 @@ class DummyProxy : public kage::Backend {
     /**
      * @brief Constructor.
      */
-    DummyProxy(thallium::engine engine, const json& config);
+    EchoProxy(thallium::engine engine, const json& config);
 
     /**
      * @brief Move-constructor.
      */
-    DummyProxy(DummyProxy&&) = default;
+    EchoProxy(EchoProxy&&) = default;
 
     /**
      * @brief Copy-constructor.
      */
-    DummyProxy(const DummyProxy&) = default;
+    EchoProxy(const EchoProxy&) = default;
 
     /**
      * @brief Move-assignment operator.
      */
-    DummyProxy& operator=(DummyProxy&&) = default;
+    EchoProxy& operator=(EchoProxy&&) = default;
 
     /**
      * @brief Copy-assignment operator.
      */
-    DummyProxy& operator=(const DummyProxy&) = default;
+    EchoProxy& operator=(const EchoProxy&) = default;
 
     /**
      * @brief Destructor.
      */
-    virtual ~DummyProxy() = default;
+    virtual ~EchoProxy() = default;
 
     /**
      * @brief Get the proxy's configuration as a JSON-formatted string.
      */
     std::string getConfig() const override;
-
-    /**
-     * @brief Prints Hello World.
-     */
-    void sayHello() override;
 
     /**
      * @brief Compute the sum of two integers.
@@ -68,7 +63,8 @@ class DummyProxy : public kage::Backend {
      *
      * @return a Result containing the result.
      */
-    kage::Result<int32_t> computeSum(int32_t x, int32_t y) override;
+    kage::Result<bool> forward(const char* input, size_t input_size,
+                               const std::function<void(const char*, size_t)>& output_cb) override;
 
     /**
      * @brief Destroys the underlying proxy.
@@ -80,7 +76,7 @@ class DummyProxy : public kage::Backend {
 
     /**
      * @brief Static factory function used by the ProxyFactory to
-     * create a DummyProxy.
+     * create a EchoProxy.
      *
      * @param engine Thallium engine
      * @param config JSON configuration for the proxy
@@ -91,7 +87,7 @@ class DummyProxy : public kage::Backend {
 
     /**
      * @brief Static factory function used by the ProxyFactory to
-     * open a DummyProxy.
+     * open a EchoProxy.
      *
      * @param engine Thallium engine
      * @param config JSON configuration for the proxy

@@ -1,5 +1,5 @@
 /*
- * (C) 2020 The University of Chicago
+ * (C) 2024 The University of Chicago
  *
  * See COPYRIGHT in top-level directory.
  */
@@ -7,11 +7,13 @@
 #define __KAGE_PROVIDER_IMPL_H
 
 #include "kage/Backend.hpp"
+#include "kage/InputOutputManager.hpp"
 
 #include <thallium.hpp>
 #include <thallium/serialization/stl/string.hpp>
 #include <thallium/serialization/stl/vector.hpp>
 
+#include <nlohmann/json-schema.hpp>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 
@@ -21,6 +23,8 @@ namespace kage {
 
 using namespace std::string_literals;
 namespace tl = thallium;
+using nlohmann::json;
+using nlohmann::json_schema::json_validator;
 
 class ProviderImpl : public tl::provider<ProviderImpl> {
 
@@ -48,18 +52,43 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     tl::engine           m_engine;
     tl::pool             m_pool;
-    // Client RPC
-    tl::auto_remote_procedure m_compute_sum;
-    // FIXME: other RPCs go here ...
-    // Backends
+    // Exported RPCs
+    std::unordered_map<std::string, tl::auto_remote_procedure> m_rpcs;
+    // Backend
     std::shared_ptr<Backend> m_backend;
 
-    ProviderImpl(const tl::engine& engine, uint16_t provider_id, const std::string& config, const tl::pool& pool)
+    ProviderImpl(const tl::engine& engine,
+                 uint16_t provider_id,
+                 const std::string& config,
+                 const tl::pool& pool)
     : tl::provider<ProviderImpl>(engine, provider_id, "kage")
     , m_engine(engine)
     , m_pool(pool)
-    , m_compute_sum(define("kage_compute_sum",  &ProviderImpl::computeSumRPC, pool))
     {
+
+        static const json schema = R"(
+        {
+            "type": "object",
+            "properties": {
+                "proxy": {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string"},
+                        "config": {"type": "object"}
+                    },
+                    "required": ["type"]
+                },
+                "export": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 }
+                }
+            },
+            "required": ["proxy"]
+        }
+        )"_json;
+        json_validator validator;
+        validator.set_root_schema(schema);
+
         trace("Registered provider with id {}", get_provider_id());
         json json_config;
         try {
@@ -68,20 +97,31 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             error("Could not parse provider configuration: {}", e.what());
             return;
         }
-        if(!json_config.is_object()) return;
-        if(!json_config.contains("proxy")) return;
-        auto& proxy = json_config["proxy"];
-        if(!proxy.is_object()) return;
-        if(proxy.contains("type") && proxy["type"].is_string()) {
-            auto& proxy_type = proxy["type"].get_ref<const std::string&>();
-            auto proxy_config = proxy.contains("config") ? proxy["config"] : json::object();
-            auto result = createProxy(proxy_type, proxy_config);
-            result.check();
+
+        try {
+            validator.validate(json_config);
+        } catch(const std::exception& ex) {
+            error("Error(s) while validating JSON config for warabi provider: {}", ex.what());
+            throw Exception("Invalid JSON configuration (see error logs for information)");
         }
+
+        // Export RPCs
+        auto& rpcs = json_config["export"];
+        for(auto& name : rpcs) {
+            m_rpcs.insert(std::make_pair(name, define(name, &ProviderImpl::forwardRPC, m_pool)));
+        }
+
+        // Create backend
+        auto& proxy = json_config["proxy"];
+        auto& proxy_type = proxy["type"].get_ref<const std::string&>();
+        auto proxy_config = proxy.contains("config") ? proxy["config"] : json::object();
+        auto result = createProxy(proxy_type, proxy_config);
+        result.check();
     }
 
     ~ProviderImpl() {
         trace("Deregistering provider");
+        m_rpcs.clear();
         if(m_backend) {
             m_backend->destroy();
         }
@@ -95,6 +135,11 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             proxy_config["type"] = m_backend->name();
             proxy_config["config"] = json::parse(m_backend->getConfig());
             config["proxy"] = std::move(proxy_config);
+        }
+        config["export"] = json::array();
+        auto& rpcs = config["export"];
+        for(auto& p : m_rpcs) {
+            rpcs.push_back(p.first);
         }
         return config.dump();
     }
@@ -125,18 +170,9 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         return result;
     }
 
-    void computeSumRPC(const tl::request& req,
-                       int32_t x, int32_t y) {
-        trace("Received computeSum request");
-        Result<int32_t> result;
-        tl::auto_respond<decltype(result)> response{req, result};
-        if(!m_backend) {
-            result.success() = false;
-            result.error() = "Provider has no proxy attached";
-        } else {
-            result = m_backend->computeSum(x, y);
-        }
-        trace("Successfully executed computeSum");
+    void forwardRPC(const tl::request& req) {
+        InputOutputManager inout{*m_backend, req};
+        req.get_input().unpack(inout);
     }
 
 };

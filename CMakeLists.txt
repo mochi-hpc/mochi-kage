@@ -5,6 +5,13 @@ project (kage C CXX)
 set (CMAKE_CXX_STANDARD 14)
 enable_testing ()
 
+# library version set here (e.g. for shared libs).
+set (KAGE_VERSION_MAJOR 0)
+set (KAGE_VERSION_MINOR 1)
+set (KAGE_VERSION_PATCH 0)
+set (KAGE_VERSION
+     "${KAGE_VERSION_MAJOR}.${KAGE_VERSION_MINOR}.${KAGE_VERSION_PATCH}")
+
 add_definitions (-Wextra -Wall -Wpedantic)
 
 add_library (coverage_config INTERFACE)
@@ -50,6 +57,7 @@ find_package (PkgConfig REQUIRED)
 find_package (thallium REQUIRED)
 # search for nlohmann/json
 find_package (nlohmann_json REQUIRED)
+find_package (nlohmann_json_schema_validator REQUIRED)
 # search for TCLAP
 find_package (TCLAP REQUIRED)
 # search for spdlog
@@ -60,13 +68,6 @@ find_package (fmt REQUIRED)
 if (${ENABLE_BEDROCK})
     find_package (bedrock-module-api REQUIRED)
 endif ()
-
-# library version set here (e.g. for shared libs).
-set (KAGE_VERSION_MAJOR 0)
-set (KAGE_VERSION_MINOR 1)
-set (KAGE_VERSION_PATCH 0)
-set (KAGE_VERSION
-     "${KAGE_VERSION_MAJOR}.${KAGE_VERSION_MINOR}.${KAGE_VERSION_PATCH}")
 
 add_subdirectory (src)
 if (${ENABLE_TESTS})

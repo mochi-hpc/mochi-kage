@@ -4,7 +4,7 @@ libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: kage-server
-Description: <insert description here>
+Description: A forwarding service for Mochi to bridge network and protocol types
 Version: @KAGE_VERSION@
 
 Requires: thallium

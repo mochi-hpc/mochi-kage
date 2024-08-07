@@ -4,6 +4,7 @@ spack:
   - pkgconfig
   - mochi-thallium ^mercury~boostsys~checksum ^libfabric fabrics=tcp,rxm
   - nlohmann-json
+  - nlohmann-json-schema-validator
   - spdlog
   - fmt
   - tclap
@@ -22,3 +23,10 @@ spack:
   config:
     install_tree:
       padded_length: 128
+  packages:
+    mochi-margo:
+      require: "@0.15.0:"
+    mochi-thallium:
+      require: "@0.12.0:"
+    nlohmann-json-schema-validator:
+      require: "@2.3.0:"

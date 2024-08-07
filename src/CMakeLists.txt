@@ -3,8 +3,8 @@ set (server-src-files
      Provider.cpp
      Backend.cpp)
 
-set (dummy-src-files
-     dummy/DummyBackend.cpp)
+set (echo-src-files
+     echo/EchoBackend.cpp)
 
 set (module-src-files
      BedrockModule.cpp)
@@ -19,10 +19,10 @@ set (kage-pkg "share/cmake/kage")
 set (kage-vers "${KAGE_VERSION_MAJOR}.${KAGE_VERSION_MINOR}")
 
 # server library
-add_library (kage-server ${server-src-files} ${dummy-src-files})
+add_library (kage-server ${server-src-files} ${echo-src-files})
 add_library (kage::server ALIAS kage-server)
 target_link_libraries (kage-server
-    PUBLIC thallium nlohmann_json::nlohmann_json
+    PUBLIC thallium nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator
     PRIVATE spdlog::spdlog fmt::fmt coverage_config)
 target_include_directories (kage-server PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (kage-server BEFORE PUBLIC
