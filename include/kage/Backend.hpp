@@ -27,11 +27,9 @@ namespace kage {
  * KAGE_REGISTER_BACKEND(mybackend, MyBackend); in a cpp file
  * that includes your backend class' header file.
  *
- * Your backend class should also have two static functions to
- * respectively create and open a proxy:
+ * Your backend class should also have a static functions to create a proxy:
  *
  * std::unique_ptr<Backend> create(const json& config)
- * std::unique_ptr<Backend> attach(const json& config)
  */
 class Backend {
 
@@ -108,8 +106,7 @@ class Backend {
 };
 
 /**
- * @brief The ProxyFactory contains functions to create
- * or open proxys.
+ * @brief The ProxyFactory contains functions to create proxys.
  */
 class ProxyFactory {
 
@@ -135,27 +132,10 @@ class ProxyFactory {
                                                    const thallium::engine& engine,
                                                    const json& config);
 
-    /**
-     * @brief Opens an existing proxy and returns a unique_ptr to the
-     * created backend instance.
-     *
-     * @param backend_name Name of the backend to use.
-     * @param engine Thallium engine.
-     * @param config Configuration object to pass to the backend's open function.
-     *
-     * @return a unique_ptr to the created Backend.
-     */
-    static std::unique_ptr<Backend> openProxy(const std::string& backend_name,
-                                                const thallium::engine& engine,
-                                                const json& config);
-
     private:
 
     static std::unordered_map<std::string,
                 std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> create_fn;
-
-    static std::unordered_map<std::string,
-                std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> open_fn;
 };
 
 } // namespace kage
@@ -175,11 +155,6 @@ class __KageBackendRegistration {
     {
         kage::ProxyFactory::create_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
             auto p = BackendType::create(engine, config);
-            p->m_name = backend_name;
-            return p;
-        };
-        kage::ProxyFactory::open_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
-            auto p = BackendType::open(engine, config);
             p->m_name = backend_name;
             return p;
         };

@@ -36,8 +36,3 @@ std::unique_ptr<kage::Backend> EchoProxy::create(const thallium::engine& engine,
     (void)engine;
     return std::unique_ptr<kage::Backend>(new EchoProxy(engine, config));
 }
-
-std::unique_ptr<kage::Backend> EchoProxy::open(const thallium::engine& engine, const json& config) {
-    (void)engine;
-    return std::unique_ptr<kage::Backend>(new EchoProxy(engine, config));
-}
