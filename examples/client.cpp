@@ -3,7 +3,7 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#include <alpha/Client.hpp>
+#include <kage/Client.hpp>
 #include <spdlog/spdlog.h>
 #include <tclap/CmdLine.h>
 #include <iostream>
@@ -27,16 +27,16 @@ int main(int argc, char** argv) {
     try {
 
         // Initialize a Client
-        alpha::Client client(engine);
+        kage::Client client(engine);
 
-        // Open the Resource "myresource" from provider 0
-        alpha::ResourceHandle resource =
-            client.makeResourceHandle(g_address, g_provider_id);
+        // Open the Proxy "myproxy" from provider 0
+        kage::ProxyHandle proxy =
+            client.makeProxyHandle(g_address, g_provider_id);
 
         int32_t result;
-        resource.computeSum(32, 54, &result);
+        proxy.computeSum(32, 54, &result);
 
-    } catch(const alpha::Exception& ex) {
+    } catch(const kage::Exception& ex) {
         std::cerr << ex.what() << std::endl;
         exit(-1);
     }
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
 void parse_command_line(int argc, char** argv) {
     try {
-        TCLAP::CmdLine cmd("Alpha client", ' ', "0.1");
+        TCLAP::CmdLine cmd("Kage client", ' ', "0.1");
         TCLAP::ValueArg<std::string> addressArg("a","address","Address or server", true,"","string");
         TCLAP::ValueArg<unsigned>    providerArg("p", "provider", "Provider id to contact (default 0)", false, 0, "int");
         TCLAP::ValueArg<std::string> logLevel("v","verbose", "Log level (trace, debug, info, warning, error, critical, off)", false, "info", "string");

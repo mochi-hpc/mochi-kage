@@ -3,10 +3,10 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: alpha-client
+Name: kage-server
 Description: <insert description here>
-Version: @ALPHA_VERSION@
+Version: @KAGE_VERSION@
 
 Requires: thallium
-Libs: -L${libdir} @CLIENT_PRIVATE_LIBS@ -lstdc++
+Libs: -L${libdir} @SERVER_PRIVATE_LIBS@ -lstdc++
 Cflags: -I${includedir}

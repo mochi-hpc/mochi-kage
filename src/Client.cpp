@@ -3,19 +3,19 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#include "alpha/Exception.hpp"
-#include "alpha/Client.hpp"
-#include "alpha/ResourceHandle.hpp"
-#include "alpha/Result.hpp"
+#include "kage/Exception.hpp"
+#include "kage/Client.hpp"
+#include "kage/ProxyHandle.hpp"
+#include "kage/Result.hpp"
 
 #include "ClientImpl.hpp"
-#include "ResourceHandleImpl.hpp"
+#include "ProxyHandleImpl.hpp"
 
 #include <thallium/serialization/stl/string.hpp>
 
 namespace tl = thallium;
 
-namespace alpha {
+namespace kage {
 
 Client::Client() = default;
 
@@ -47,7 +47,7 @@ Client::operator bool() const {
     return static_cast<bool>(self);
 }
 
-ResourceHandle Client::makeResourceHandle(
+ProxyHandle Client::makeProxyHandle(
         const std::string& address,
         uint16_t provider_id,
         bool check) const {
@@ -55,14 +55,14 @@ ResourceHandle Client::makeResourceHandle(
     auto ph        = tl::provider_handle(endpoint, provider_id);
     if(check) {
         try {
-            if(ph.get_identity() != "alpha") {
-                throw Exception{"Address and provider ID do not point to a alpha provider"};
+            if(ph.get_identity() != "kage") {
+                throw Exception{"Address and provider ID do not point to a kage provider"};
             }
         } catch(const std::exception& ex) {
             throw Exception{ex.what()};
         }
     }
-    return std::make_shared<ResourceHandleImpl>(self, std::move(ph));
+    return std::make_shared<ProxyHandleImpl>(self, std::move(ph));
 }
 
 std::string Client::getConfig() const {

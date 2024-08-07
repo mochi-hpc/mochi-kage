@@ -3,7 +3,7 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#include <alpha/Provider.hpp>
+#include <kage/Provider.hpp>
 #include <iostream>
 #include <vector>
 #include <spdlog/spdlog.h>
@@ -26,13 +26,13 @@ int main(int argc, char** argv) {
     engine.enable_remote_shutdown();
     const auto provider_config = R"(
     {
-        "resource": {
+        "proxy": {
             "type": "dummy",
             "config": {}
         }
     }
     )";
-    std::vector<alpha::Provider> providers;
+    std::vector<kage::Provider> providers;
     for(unsigned i=0 ; i < g_num_providers; i++) {
         providers.emplace_back(engine, i, provider_config);
     }
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
 void parse_command_line(int argc, char** argv) {
     try {
-        TCLAP::CmdLine cmd("Spawns a Alpha daemon", ' ', "0.1");
+        TCLAP::CmdLine cmd("Spawns a Kage daemon", ' ', "0.1");
         TCLAP::ValueArg<std::string> addressArg("a","address","Address or protocol (e.g. ofi+tcp)", true,"","string");
         TCLAP::ValueArg<unsigned>    providersArg("n", "num-providers", "Number of providers to spawn (default 1)", false, 1, "int");
         TCLAP::SwitchArg progressThreadArg("p","use-progress-thread","Use a Mercury progress thread", cmd, false);

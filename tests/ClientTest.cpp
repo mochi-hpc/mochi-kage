@@ -6,9 +6,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
 #include "Ensure.hpp"
-#include <alpha/Client.hpp>
-#include <alpha/Provider.hpp>
-#include <alpha/ResourceHandle.hpp>
+#include <kage/Client.hpp>
+#include <kage/Provider.hpp>
+#include <kage/ProxyHandle.hpp>
 
 TEST_CASE("Client test", "[client]") {
 
@@ -17,24 +17,24 @@ TEST_CASE("Client test", "[client]") {
     // Initialize the provider
     const auto provider_config = R"(
     {
-        "resource": {
+        "proxy": {
             "type": "dummy",
             "config": {}
         }
     }
     )";
 
-    alpha::Provider provider(engine, 42, provider_config);
+    kage::Provider provider(engine, 42, provider_config);
 
-    SECTION("Open resource") {
+    SECTION("Open proxy") {
 
-        alpha::Client client(engine);
+        kage::Client client(engine);
         std::string addr = engine.self();
 
-        alpha::ResourceHandle my_resource = client.makeResourceHandle(addr, 42);
-        REQUIRE(static_cast<bool>(my_resource));
+        kage::ProxyHandle my_proxy = client.makeProxyHandle(addr, 42);
+        REQUIRE(static_cast<bool>(my_proxy));
 
-        REQUIRE_THROWS_AS(client.makeResourceHandle(addr, 55), alpha::Exception);
-        REQUIRE_NOTHROW(client.makeResourceHandle(addr, 55, false));
+        REQUIRE_THROWS_AS(client.makeProxyHandle(addr, 55), kage::Exception);
+        REQUIRE_NOTHROW(client.makeProxyHandle(addr, 55, false));
     }
 }

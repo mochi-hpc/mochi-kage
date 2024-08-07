@@ -3,10 +3,10 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_PROVIDER_IMPL_H
-#define __ALPHA_PROVIDER_IMPL_H
+#ifndef __KAGE_PROVIDER_IMPL_H
+#define __KAGE_PROVIDER_IMPL_H
 
-#include "alpha/Backend.hpp"
+#include "kage/Backend.hpp"
 
 #include <thallium.hpp>
 #include <thallium/serialization/stl/string.hpp>
@@ -17,7 +17,7 @@
 
 #include <tuple>
 
-namespace alpha {
+namespace kage {
 
 using namespace std::string_literals;
 namespace tl = thallium;
@@ -32,7 +32,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     template<typename ... Args>                                    \
     void __name__(Args&&... args) {                                \
         auto msg = fmt::format(std::forward<Args>(args)...);       \
-        spdlog::__name__("[alpha:{}] {}", get_provider_id(), msg); \
+        spdlog::__name__("[kage:{}] {}", get_provider_id(), msg); \
     }
 
     DEF_LOGGING_FUNCTION(trace)
@@ -55,10 +55,10 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     std::shared_ptr<Backend> m_backend;
 
     ProviderImpl(const tl::engine& engine, uint16_t provider_id, const std::string& config, const tl::pool& pool)
-    : tl::provider<ProviderImpl>(engine, provider_id, "alpha")
+    : tl::provider<ProviderImpl>(engine, provider_id, "kage")
     , m_engine(engine)
     , m_pool(pool)
-    , m_compute_sum(define("alpha_compute_sum",  &ProviderImpl::computeSumRPC, pool))
+    , m_compute_sum(define("kage_compute_sum",  &ProviderImpl::computeSumRPC, pool))
     {
         trace("Registered provider with id {}", get_provider_id());
         json json_config;
@@ -69,13 +69,13 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             return;
         }
         if(!json_config.is_object()) return;
-        if(!json_config.contains("resource")) return;
-        auto& resource = json_config["resource"];
-        if(!resource.is_object()) return;
-        if(resource.contains("type") && resource["type"].is_string()) {
-            auto& resource_type = resource["type"].get_ref<const std::string&>();
-            auto resource_config = resource.contains("config") ? resource["config"] : json::object();
-            auto result = createResource(resource_type, resource_config);
+        if(!json_config.contains("proxy")) return;
+        auto& proxy = json_config["proxy"];
+        if(!proxy.is_object()) return;
+        if(proxy.contains("type") && proxy["type"].is_string()) {
+            auto& proxy_type = proxy["type"].get_ref<const std::string&>();
+            auto proxy_config = proxy.contains("config") ? proxy["config"] : json::object();
+            auto result = createProxy(proxy_type, proxy_config);
             result.check();
         }
     }
@@ -90,38 +90,38 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     std::string getConfig() const {
         auto config = json::object();
         if(m_backend) {
-            config["resource"] = json::object();
-            auto resource_config = json::object();
-            resource_config["type"] = m_backend->name();
-            resource_config["config"] = json::parse(m_backend->getConfig());
-            config["resource"] = std::move(resource_config);
+            config["proxy"] = json::object();
+            auto proxy_config = json::object();
+            proxy_config["type"] = m_backend->name();
+            proxy_config["config"] = json::parse(m_backend->getConfig());
+            config["proxy"] = std::move(proxy_config);
         }
         return config.dump();
     }
 
-    Result<bool> createResource(const std::string& resource_type,
-                                const json& resource_config) {
+    Result<bool> createProxy(const std::string& proxy_type,
+                                const json& proxy_config) {
 
         Result<bool> result;
 
         try {
-            m_backend = ResourceFactory::createResource(resource_type, get_engine(), resource_config);
+            m_backend = ProxyFactory::createProxy(proxy_type, get_engine(), proxy_config);
         } catch(const std::exception& ex) {
             result.success() = false;
             result.error() = ex.what();
-            error("Error when creating resource of type {}: {}",
-                  resource_type, result.error());
+            error("Error when creating proxy of type {}: {}",
+                  proxy_type, result.error());
             return result;
         }
 
         if(not m_backend) {
             result.success() = false;
-            result.error() = "Unknown resource type "s + resource_type;
-            error("Unknown resource type {}", resource_type);
+            result.error() = "Unknown proxy type "s + proxy_type;
+            error("Unknown proxy type {}", proxy_type);
             return result;
         }
 
-        trace("Successfully created resource of type {}", resource_type);
+        trace("Successfully created proxy of type {}", proxy_type);
         return result;
     }
 
@@ -132,7 +132,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         tl::auto_respond<decltype(result)> response{req, result};
         if(!m_backend) {
             result.success() = false;
-            result.error() = "Provider has no resource attached";
+            result.error() = "Provider has no proxy attached";
         } else {
             result = m_backend->computeSum(x, y);
         }

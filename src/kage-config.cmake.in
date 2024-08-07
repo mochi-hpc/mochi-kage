@@ -1,0 +1,22 @@
+#
+# kage-config.cmake.in
+#
+
+set (KAGE_VERSION @KAGE_VERSION@)
+
+@PACKAGE_INIT@
+
+set_and_check (KAGE_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+
+check_required_components (kage)
+
+include (CMakeFindDependencyMacro)
+find_dependency (thallium)
+find_dependency (PkgConfig)
+
+# FIXME: add more dependencies if needed
+
+include ("${CMAKE_CURRENT_LIST_DIR}/kage-targets.cmake")
+
+add_library (kage::server ALIAS kage-server)
+add_library (kage::client ALIAS kage-client)

@@ -3,15 +3,15 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_CLIENT_IMPL_H
-#define __ALPHA_CLIENT_IMPL_H
+#ifndef __KAGE_CLIENT_IMPL_H
+#define __KAGE_CLIENT_IMPL_H
 
 #include <thallium.hpp>
 #include <thallium/serialization/stl/unordered_set.hpp>
 #include <thallium/serialization/stl/unordered_map.hpp>
 #include <thallium/serialization/stl/string.hpp>
 
-namespace alpha {
+namespace kage {
 
 namespace tl = thallium;
 
@@ -24,7 +24,7 @@ class ClientImpl {
 
     ClientImpl(const tl::engine& engine)
     : m_engine(engine)
-    , m_compute_sum(m_engine.define("alpha_compute_sum"))
+    , m_compute_sum(m_engine.define("kage_compute_sum"))
     {}
 
     ClientImpl(margo_instance_id mid)

@@ -3,12 +3,12 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_PROVIDER_HANDLE_HPP
-#define __ALPHA_PROVIDER_HANDLE_HPP
+#ifndef __KAGE_PROVIDER_HANDLE_HPP
+#define __KAGE_PROVIDER_HANDLE_HPP
 
 #include <thallium.hpp>
 
-namespace alpha {
+namespace kage {
 
 using ProviderHandle = thallium::provider_handle;
 

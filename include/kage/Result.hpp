@@ -3,13 +3,13 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_RESULT_HPP
-#define __ALPHA_RESULT_HPP
+#ifndef __KAGE_RESULT_HPP
+#define __KAGE_RESULT_HPP
 
-#include <alpha/Exception.hpp>
+#include <kage/Exception.hpp>
 #include <string>
 
-namespace alpha {
+namespace kage {
 
 /**
  * @brief The Result object is a generic object

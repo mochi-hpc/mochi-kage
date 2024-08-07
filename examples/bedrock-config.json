@@ -1,14 +1,14 @@
 {
     "libraries": {
-        "alpha": "libalpha-bedrock-module.so"
+        "kage": "libkage-bedrock-module.so"
     },
     "providers": [
         {
-            "type": "alpha",
-            "name": "my-alpha-provider",
+            "type": "kage",
+            "name": "my-kage-provider",
             "provider_id": 42,
             "config": {
-                "resource": {
+                "proxy": {
                     "type": "dummy",
                     "config": {}
                 }

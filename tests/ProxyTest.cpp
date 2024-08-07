@@ -6,27 +6,27 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
 #include "Ensure.hpp"
-#include <alpha/Client.hpp>
-#include <alpha/Provider.hpp>
+#include <kage/Client.hpp>
+#include <kage/Provider.hpp>
 
-TEST_CASE("Resource test", "[resource]") {
+TEST_CASE("Proxy test", "[proxy]") {
     auto engine = thallium::engine("na+sm", THALLIUM_SERVER_MODE);
     ENSURE(engine.finalize());
     const auto provider_config = R"(
     {
-        "resource": {
+        "proxy": {
             "type": "dummy",
             "config": {}
         }
     }
     )";
-    alpha::Provider provider(engine, 42, provider_config);
+    kage::Provider provider(engine, 42, provider_config);
 
-    SECTION("Create ResourceHandle") {
-        alpha::Client client(engine);
+    SECTION("Create ProxyHandle") {
+        kage::Client client(engine);
         std::string addr = engine.self();
 
-        auto rh = client.makeResourceHandle(addr, 42);
+        auto rh = client.makeProxyHandle(addr, 42);
 
         SECTION("Send Sum RPC") {
             int32_t result = 0;
@@ -35,7 +35,7 @@ TEST_CASE("Resource test", "[resource]") {
 
             REQUIRE_NOTHROW(rh.computeSum(42, 51));
 
-            alpha::AsyncRequest request;
+            kage::AsyncRequest request;
             REQUIRE_NOTHROW(rh.computeSum(42, 52, &result, &request));
             REQUIRE_NOTHROW(request.wait());
             REQUIRE(result == 94);

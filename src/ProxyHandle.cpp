@@ -3,48 +3,48 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#include "alpha/ResourceHandle.hpp"
-#include "alpha/Result.hpp"
-#include "alpha/Exception.hpp"
+#include "kage/ProxyHandle.hpp"
+#include "kage/Result.hpp"
+#include "kage/Exception.hpp"
 
 #include "AsyncRequestImpl.hpp"
 #include "ClientImpl.hpp"
-#include "ResourceHandleImpl.hpp"
+#include "ProxyHandleImpl.hpp"
 
 #include <thallium/serialization/stl/string.hpp>
 #include <thallium/serialization/stl/pair.hpp>
 
-namespace alpha {
+namespace kage {
 
-ResourceHandle::ResourceHandle() = default;
+ProxyHandle::ProxyHandle() = default;
 
-ResourceHandle::ResourceHandle(const std::shared_ptr<ResourceHandleImpl>& impl)
+ProxyHandle::ProxyHandle(const std::shared_ptr<ProxyHandleImpl>& impl)
 : self(impl) {}
 
-ResourceHandle::ResourceHandle(const ResourceHandle&) = default;
+ProxyHandle::ProxyHandle(const ProxyHandle&) = default;
 
-ResourceHandle::ResourceHandle(ResourceHandle&&) = default;
+ProxyHandle::ProxyHandle(ProxyHandle&&) = default;
 
-ResourceHandle& ResourceHandle::operator=(const ResourceHandle&) = default;
+ProxyHandle& ProxyHandle::operator=(const ProxyHandle&) = default;
 
-ResourceHandle& ResourceHandle::operator=(ResourceHandle&&) = default;
+ProxyHandle& ProxyHandle::operator=(ProxyHandle&&) = default;
 
-ResourceHandle::~ResourceHandle() = default;
+ProxyHandle::~ProxyHandle() = default;
 
-ResourceHandle::operator bool() const {
+ProxyHandle::operator bool() const {
     return static_cast<bool>(self);
 }
 
-Client ResourceHandle::client() const {
+Client ProxyHandle::client() const {
     return Client(self->m_client);
 }
 
-void ResourceHandle::computeSum(
+void ProxyHandle::computeSum(
         int32_t x, int32_t y,
         int32_t* sum,
         AsyncRequest* req) const
 {
-    if(not self) throw Exception("Invalid alpha::ResourceHandle object");
+    if(not self) throw Exception("Invalid kage::ProxyHandle object");
     auto& rpc = self->m_client->m_compute_sum;
     auto& ph  = self->m_ph;
     if(req == nullptr) { // synchronous call

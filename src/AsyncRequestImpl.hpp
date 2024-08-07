@@ -3,13 +3,13 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_ASYNC_REQUEST_IMPL_H
-#define __ALPHA_ASYNC_REQUEST_IMPL_H
+#ifndef __KAGE_ASYNC_REQUEST_IMPL_H
+#define __KAGE_ASYNC_REQUEST_IMPL_H
 
 #include <functional>
 #include <thallium.hpp>
 
-namespace alpha {
+namespace kage {
 
 namespace tl = thallium;
 

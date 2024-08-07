@@ -1,4 +1,4 @@
 {
     "service_name": "kage",
-    "resource_name": "proxy"
+    "proxy_name": "proxy"
 }
