@@ -3,7 +3,6 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#include "kage/Client.hpp"
 #include "kage/Provider.hpp"
 #include "kage/ProviderHandle.hpp"
 #include <bedrock/AbstractServiceFactory.hpp>
@@ -33,23 +32,24 @@ class KageFactory : public bedrock::AbstractServiceFactory {
     }
 
     void *initClient(const bedrock::FactoryArgs& args) override {
-        return static_cast<void *>(new kage::Client(args.mid));
+        return static_cast<void*>(new tl::engine{args.engine});
     }
 
     void finalizeClient(void *client) override {
-        delete static_cast<kage::Client *>(client);
+        auto engine = static_cast<tl::engine*>(client);
+        delete engine;
     }
 
     std::string getClientConfig(void* c) override {
-        auto client = static_cast<kage::Client*>(c);
-        return client->getConfig();
+        (void)c;
+        return "{}";
     }
 
     void *createProviderHandle(void *c, hg_addr_t address,
             uint16_t provider_id) override {
-        auto client = static_cast<kage::Client *>(c);
+        auto engine = static_cast<tl::engine*>(c);
         auto ph = new kage::ProviderHandle(
-                client->engine(),
+                *engine,
                 address,
                 provider_id,
                 false);

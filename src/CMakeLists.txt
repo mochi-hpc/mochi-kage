@@ -3,11 +3,6 @@ set (server-src-files
      Provider.cpp
      Backend.cpp)
 
-set (client-src-files
-     Client.cpp
-     ProxyHandle.cpp
-     AsyncRequest.cpp)
-
 set (dummy-src-files
      dummy/DummyBackend.cpp)
 
@@ -38,26 +33,11 @@ set_target_properties (kage-server
     PROPERTIES VERSION ${KAGE_VERSION}
     SOVERSION ${KAGE_VERSION_MAJOR})
 
-# client library
-add_library (kage-client ${client-src-files})
-add_library (kage::client ALIAS kage-client)
-target_link_libraries (kage-client
-    PUBLIC thallium nlohmann_json::nlohmann_json
-    PRIVATE spdlog::spdlog fmt::fmt coverage_config)
-target_include_directories (kage-client PUBLIC $<INSTALL_INTERFACE:include>)
-target_include_directories (kage-client BEFORE PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
-target_include_directories (kage-client BEFORE PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
-set_target_properties (kage-client
-    PROPERTIES VERSION ${KAGE_VERSION}
-    SOVERSION ${KAGE_VERSION_MAJOR})
-
 if (${ENABLE_BEDROCK})
 # bedrock module library
 add_library (kage-bedrock-module ${module-src-files})
 add_library (kage::bedrock ALIAS kage-bedrock-module)
-target_link_libraries (kage-bedrock-module kage-server kage-client bedrock::module-api coverage_config)
+target_link_libraries (kage-bedrock-module kage-server bedrock::module-api coverage_config)
 target_include_directories (kage-bedrock-module PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (kage-bedrock-module BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -85,15 +65,13 @@ configure_package_config_file (kage-config.cmake.in
 # some bits for the pkg-config file
 set (DEST_DIR "${CMAKE_INSTALL_PREFIX}")
 set (SERVER_PRIVATE_LIBS "-lkage-server")
-set (CLIENT_PRIVATE_LIBS "-lkage-client")
 configure_file ("kage-server.pc.in" "kage-server.pc" @ONLY)
-configure_file ("kage-client.pc.in" "kage-client.pc" @ONLY)
 
 # configure config.h
 configure_file ("config.h.in" "config.h" @ONLY)
 
 # "make install" rules
-install (TARGETS kage-server kage-client
+install (TARGETS kage-server
          EXPORT kage-targets
          ARCHIVE DESTINATION lib
          LIBRARY DESTINATION lib)
@@ -115,5 +93,4 @@ install (DIRECTORY ../include/kage
          DESTINATION include
          FILES_MATCHING PATTERN "*.h")
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/kage-server.pc"
-               "${CMAKE_CURRENT_BINARY_DIR}/kage-client.pc"
          DESTINATION "lib/pkgconfig/")
