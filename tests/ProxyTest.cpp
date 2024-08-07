@@ -14,6 +14,7 @@ TEST_CASE("Proxy test", "[proxy]") {
     const auto provider_config = R"(
     {
         "export": [],
+        "direction": "output",
         "proxy": {
             "type": "echo",
             "config": {}

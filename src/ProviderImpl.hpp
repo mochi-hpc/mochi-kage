@@ -70,6 +70,10 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         {
             "type": "object",
             "properties": {
+                "direction": {
+                    "type": "string",
+                    "enum": ["input", "output"]
+                },
                 "proxy": {
                     "type": "object",
                     "properties": {
@@ -83,7 +87,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
                     "items": { "type": "string", "minLength": 1 }
                 }
             },
-            "required": ["proxy"]
+            "required": ["proxy", "direction"]
         }
         )"_json;
         json_validator validator;
