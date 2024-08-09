@@ -13,8 +13,14 @@ namespace tl = thallium;
 
 namespace kage {
 
-Provider::Provider(const tl::engine& engine, uint16_t provider_id, const std::string& config, const tl::pool& p)
-: self(std::make_shared<ProviderImpl>(engine, provider_id, config, p)) {
+Provider::Provider(const tl::engine& engine,
+                   uint16_t provider_id,
+                   const std::string& config,
+                   const tl::provider_handle& target,
+                   const tl::pool& rpc_pool,
+                   const tl::pool& proxy_pool)
+: self(std::make_shared<ProviderImpl>(
+        engine, provider_id, config, target, rpc_pool, proxy_pool)) {
     self->get_engine().push_finalize_callback(this, [p=this]() { p->self.reset(); });
 }
 

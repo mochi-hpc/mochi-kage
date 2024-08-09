@@ -32,7 +32,13 @@ kage::Result<bool> EchoProxy::destroy() {
     return result;
 }
 
-std::unique_ptr<kage::Backend> EchoProxy::create(const thallium::engine& engine, const json& config) {
+std::unique_ptr<kage::Backend> EchoProxy::create(
+        const thallium::engine& engine,
+        const json& config,
+        const thallium::provider_handle& target,
+        const thallium::pool& pool) {
     (void)engine;
+    (void)target;
+    (void)pool;
     return std::unique_ptr<kage::Backend>(new EchoProxy(engine, config));
 }

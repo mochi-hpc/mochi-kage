@@ -51,19 +51,25 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     public:
 
     tl::engine           m_engine;
-    tl::pool             m_pool;
+    tl::pool             m_rpc_pool;
+    tl::pool             m_proxy_pool;
+    bool                 m_is_input;
+    bool                 m_is_output;
     // Exported RPCs
-    std::unordered_map<std::string, tl::auto_remote_procedure> m_rpcs;
+    std::unordered_map<std::string, tl::remote_procedure> m_rpcs;
     // Backend
     std::shared_ptr<Backend> m_backend;
 
     ProviderImpl(const tl::engine& engine,
                  uint16_t provider_id,
                  const std::string& config,
-                 const tl::pool& pool)
+                 const tl::provider_handle& target,
+                 const tl::pool& rpc_pool,
+                 const tl::pool& proxy_pool)
     : tl::provider<ProviderImpl>(engine, provider_id, "kage")
     , m_engine(engine)
-    , m_pool(pool)
+    , m_rpc_pool(rpc_pool.is_null() ? m_engine.get_handler_pool() : rpc_pool)
+    , m_proxy_pool(proxy_pool.is_null() ? m_engine.get_handler_pool() : proxy_pool)
     {
 
         static const json schema = R"(
@@ -72,7 +78,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             "properties": {
                 "direction": {
                     "type": "string",
-                    "enum": ["input", "output"]
+                    "enum": ["in", "out", "inout"]
                 },
                 "proxy": {
                     "type": "object",
@@ -82,12 +88,12 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
                     },
                     "required": ["type"]
                 },
-                "export": {
+                "exported_rpcs": {
                     "type": "array",
                     "items": { "type": "string", "minLength": 1 }
                 }
             },
-            "required": ["proxy", "direction"]
+            "required": ["proxy", "direction", "exported_rpcs"]
         }
         )"_json;
         json_validator validator;
@@ -99,7 +105,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             json_config = json::parse(config);
         } catch(json::parse_error& e) {
             error("Could not parse provider configuration: {}", e.what());
-            return;
+            throw Exception{"Could not parse provider configuration: {}", e.what()};
         }
 
         try {
@@ -109,22 +115,41 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             throw Exception("Invalid JSON configuration (see error logs for information)");
         }
 
+        // Get direction
+        m_is_input = json_config["direction"] == "in" || json_config["direction"] == "inout";
+        m_is_output = json_config["direction"] == "out" || json_config["direction"] == "inout";
+
+        if(m_is_input && target.is_null()) {
+            throw Exception("Input proxy needs a provider to redirect input to");
+        }
+
         // Export RPCs
-        auto& rpcs = json_config["export"];
-        for(auto& name : rpcs) {
-            m_rpcs.insert(std::make_pair(name, define(name, &ProviderImpl::forwardRPC, m_pool)));
+        auto& rpcs = json_config["exported_rpcs"];
+        if(m_is_output) {
+            for(auto& name : rpcs) {
+                m_rpcs.insert(std::make_pair(name, define(name, &ProviderImpl::forwardRPCtoOutput, m_rpc_pool)));
+            }
+        } else {
+            for(auto& name : rpcs) {
+                m_rpcs.insert(std::make_pair(name, get_engine().define(name)));
+            }
         }
 
         // Create backend
         auto& proxy = json_config["proxy"];
         auto& proxy_type = proxy["type"].get_ref<const std::string&>();
         auto proxy_config = proxy.contains("config") ? proxy["config"] : json::object();
-        auto result = createProxy(proxy_type, proxy_config);
+        auto result = createProxy(proxy_type, proxy_config, target);
         result.check();
     }
 
     ~ProviderImpl() {
         trace("Deregistering provider");
+        if(m_is_output) {
+            for(auto& p : m_rpcs) {
+                p.second.deregister();
+            }
+        }
         m_rpcs.clear();
         if(m_backend) {
             m_backend->destroy();
@@ -140,8 +165,8 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             proxy_config["config"] = json::parse(m_backend->getConfig());
             config["proxy"] = std::move(proxy_config);
         }
-        config["export"] = json::array();
-        auto& rpcs = config["export"];
+        config["exported_rpcs"] = json::array();
+        auto& rpcs = config["exported_rpcs"];
         for(auto& p : m_rpcs) {
             rpcs.push_back(p.first);
         }
@@ -149,12 +174,14 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     }
 
     Result<bool> createProxy(const std::string& proxy_type,
-                                const json& proxy_config) {
+                             const json& proxy_config,
+                             const tl::provider_handle& target) {
 
         Result<bool> result;
 
         try {
-            m_backend = ProxyFactory::createProxy(proxy_type, get_engine(), proxy_config);
+            m_backend = ProxyFactory::createProxy(
+                proxy_type, get_engine(), proxy_config, target, m_proxy_pool);
         } catch(const std::exception& ex) {
             result.success() = false;
             result.error() = ex.what();
@@ -174,7 +201,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         return result;
     }
 
-    void forwardRPC(const tl::request& req) {
+    void forwardRPCtoOutput(const tl::request& req) {
         InputOutputManager inout{*m_backend, req};
         req.get_input().unpack(inout);
     }

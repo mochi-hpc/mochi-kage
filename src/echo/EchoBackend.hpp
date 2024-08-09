@@ -80,21 +80,16 @@ class EchoProxy : public kage::Backend {
      *
      * @param engine Thallium engine
      * @param config JSON configuration for the proxy
+     * @param target Optional target provider of RPCs coming from outside.
+     * @param pool Optional pool in which to submit work.
      *
      * @return a unique_ptr to a proxy
      */
-    static std::unique_ptr<kage::Backend> create(const thallium::engine& engine, const json& config);
-
-    /**
-     * @brief Static factory function used by the ProxyFactory to
-     * open a EchoProxy.
-     *
-     * @param engine Thallium engine
-     * @param config JSON configuration for the proxy
-     *
-     * @return a unique_ptr to a proxy
-     */
-    static std::unique_ptr<kage::Backend> open(const thallium::engine& engine, const json& config);
+    static std::unique_ptr<kage::Backend> create(
+            const thallium::engine& engine,
+            const json& config,
+            const thallium::provider_handle& target,
+            const thallium::pool& pool);
 };
 
 #endif

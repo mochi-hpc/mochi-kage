@@ -29,12 +29,16 @@ class Provider {
      * @param engine Thallium engine to use to receive RPCs.
      * @param provider_id Provider id.
      * @param config JSON-formatted configuration.
-     * @param pool Argobots pool to use to handle RPCs.
+     * @param target Target of input RPCs, if input provider.
+     * @param rpc_pool Argobots pool to use to handle RPCs.
+     * @param proxy_pool Argobots pool to pass to the proxy.
      */
     Provider(const tl::engine& engine,
              uint16_t provider_id,
              const std::string& config,
-             const tl::pool& pool = tl::pool());
+             const tl::provider_handle& target = tl::provider_handle{},
+             const tl::pool& rpc_pool = tl::pool(),
+             const tl::pool& proxy_pool = tl::pool());
 
     /**
      * @brief Copy-constructor is deleted.

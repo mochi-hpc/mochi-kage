@@ -14,8 +14,8 @@ TEST_CASE("EchoProxy test", "[echo]") {
     ENSURE(engine.finalize());
     const auto provider_config = R"(
     {
-        "export": ["my_rpc"],
-        "direction": "output",
+        "exported_rpcs": ["my_rpc"],
+        "direction": "out",
         "proxy": {
             "type": "echo",
             "config": {}

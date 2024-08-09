@@ -13,8 +13,8 @@ TEST_CASE("Proxy test", "[proxy]") {
     ENSURE(engine.finalize());
     const auto provider_config = R"(
     {
-        "export": [],
-        "direction": "output",
+        "exported_rpcs": [],
+        "direction": "out",
         "proxy": {
             "type": "echo",
             "config": {}

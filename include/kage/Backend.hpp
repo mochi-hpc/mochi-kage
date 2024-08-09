@@ -125,17 +125,25 @@ class ProxyFactory {
      * @param backend_name Name of the backend to use.
      * @param engine Thallium engine.
      * @param config Configuration object to pass to the backend's create function.
+     * @param target Optional target provider of RPCs coming from outside.
+     * @param pool Optional pool in which to submit work.
      *
      * @return a unique_ptr to the created Proxy.
      */
     static std::unique_ptr<Backend> createProxy(const std::string& backend_name,
-                                                   const thallium::engine& engine,
-                                                   const json& config);
+                                                const thallium::engine& engine,
+                                                const json& config,
+                                                const thallium::provider_handle& target,
+                                                const thallium::pool& pool);
 
     private:
 
     static std::unordered_map<std::string,
-                std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> create_fn;
+                std::function<std::unique_ptr<Backend>(
+                    const thallium::engine&,
+                    const json&,
+                    const thallium::provider_handle&,
+                    const thallium::pool&)>> create_fn;
 };
 
 } // namespace kage
@@ -153,11 +161,15 @@ class __KageBackendRegistration {
 
     __KageBackendRegistration(const std::string& backend_name)
     {
-        kage::ProxyFactory::create_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
-            auto p = BackendType::create(engine, config);
-            p->m_name = backend_name;
-            return p;
-        };
+        kage::ProxyFactory::create_fn[backend_name] =
+            [backend_name](const thallium::engine& engine,
+                           const json& config,
+                           const thallium::provider_handle& target,
+                           const thallium::pool& pool) {
+                auto p = BackendType::create(engine, config, target, pool);
+                p->m_name = backend_name;
+                return p;
+            };
     }
 };
 
