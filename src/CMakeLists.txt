@@ -3,9 +3,6 @@ set (server-src-files
      Provider.cpp
      Backend.cpp)
 
-set (echo-src-files
-     echo/EchoBackend.cpp)
-
 set (module-src-files
      BedrockModule.cpp)
 
