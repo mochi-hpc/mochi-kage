@@ -6,6 +6,7 @@
 #ifndef __KAGE_PROVIDER_HPP
 #define __KAGE_PROVIDER_HPP
 
+#include <kage/Result.hpp>
 #include <thallium.hpp>
 #include <memory>
 
@@ -76,6 +77,22 @@ class Provider {
      * @brief Checks whether the Provider instance is valid.
      */
     operator bool() const;
+
+    /**
+     * @brief Forward the input data to the provider this Kage Provider redirects inputs to,
+     * and call output_cb on the obtained output data.
+     *
+     * This methos should be used by Backend implementations that are setup as input.
+     *
+     * @param rpc_id ID of the RPC to forward.
+     * @param data Data to forward.
+     * @param data_size Size of the data.
+     * @param output_cb Callback to invoke on the output.
+     *
+     * @return a Result containing the result of the operation.
+     */
+    Result<bool> forwardInput(hg_id_t rpc_id, const char* data, size_t data_size,
+                              const std::function<void(const char*, size_t)>& output_cb);
 
     private:
 

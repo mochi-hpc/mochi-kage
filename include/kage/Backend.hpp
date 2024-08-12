@@ -7,6 +7,7 @@
 #define __KAGE_BACKEND_HPP
 
 #include <kage/Result.hpp>
+#include <kage/InputProxy.hpp>
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
@@ -86,14 +87,20 @@ class Backend {
      * @brief Forward the input data to the backend and
      * call output_cb on the obtained output data.
      *
-     * @param input Input data to forward.
-     * @param input_size Size of the input data.
+     * @param rpc_id ID of the RPC to forward out.
+     * @param data Data to forward.
+     * @param data_size Size of the data.
      * @param output_cb Callback to invoke on the output.
      *
      * @return a Result containing the result of the operation.
      */
-    virtual Result<bool> forward(const char* input, size_t input_size,
-                                 const std::function<void(const char*, size_t)>& output_cb) = 0;
+    virtual Result<bool> forwardOutput(hg_id_t rpc_id, const char* data, size_t data_size,
+                                       const std::function<void(const char*, size_t)>& output_cb) = 0;
+
+    /**
+     * @brief Set the InputProxy to which to redirect input RPCs.
+     */
+    virtual void setInputProxy(InputProxy proxy) = 0;
 
     /**
      * @brief Destroys the underlying proxy.
@@ -125,7 +132,6 @@ class ProxyFactory {
      * @param backend_name Name of the backend to use.
      * @param engine Thallium engine.
      * @param config Configuration object to pass to the backend's create function.
-     * @param target Optional target provider of RPCs coming from outside.
      * @param pool Optional pool in which to submit work.
      *
      * @return a unique_ptr to the created Proxy.
@@ -133,7 +139,6 @@ class ProxyFactory {
     static std::unique_ptr<Backend> createProxy(const std::string& backend_name,
                                                 const thallium::engine& engine,
                                                 const json& config,
-                                                const thallium::provider_handle& target,
                                                 const thallium::pool& pool);
 
     private:
@@ -142,7 +147,6 @@ class ProxyFactory {
                 std::function<std::unique_ptr<Backend>(
                     const thallium::engine&,
                     const json&,
-                    const thallium::provider_handle&,
                     const thallium::pool&)>> create_fn;
 };
 
@@ -164,9 +168,8 @@ class __KageBackendRegistration {
         kage::ProxyFactory::create_fn[backend_name] =
             [backend_name](const thallium::engine& engine,
                            const json& config,
-                           const thallium::provider_handle& target,
                            const thallium::pool& pool) {
-                auto p = BackendType::create(engine, config, target, pool);
+                auto p = BackendType::create(engine, config, pool);
                 p->m_name = backend_name;
                 return p;
             };

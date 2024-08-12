@@ -1,4 +1,4 @@
-set (backend_sources echo/EchoBackend.cpp)
+set (backend_sources echo/EchoBackend.cpp passthrough/PassThroughBackend.cpp)
 
 file (GLOB test-sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 foreach (test-source ${test-sources})

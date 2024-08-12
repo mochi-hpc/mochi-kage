@@ -2,7 +2,7 @@ spack:
   specs:
   - cmake
   - pkgconfig
-  - mochi-thallium ^mercury~boostsys~checksum ^libfabric fabrics=tcp,rxm
+  - mochi-thallium@main ^mercury~boostsys~checksum ^libfabric fabrics=tcp,rxm
   - nlohmann-json
   - nlohmann-json-schema-validator
   - spdlog

@@ -18,12 +18,17 @@ std::string EchoProxy::getConfig() const {
     return m_config.dump();
 }
 
-kage::Result<bool> EchoProxy::forward(const char* input, size_t input_size,
-                                      const std::function<void(const char*, size_t)>& output_cb) {
+kage::Result<bool> EchoProxy::forwardOutput(hg_id_t rpc_id, const char* input, size_t input_size,
+                                            const std::function<void(const char*, size_t)>& output_cb) {
+    (void)rpc_id;
     kage::Result<bool> result;
     result.success() = true;
     output_cb(input, input_size);
     return result;
+}
+
+void EchoProxy::setInputProxy(kage::InputProxy proxy) {
+    m_input_proxy = std::move(proxy);
 }
 
 kage::Result<bool> EchoProxy::destroy() {
@@ -35,10 +40,8 @@ kage::Result<bool> EchoProxy::destroy() {
 std::unique_ptr<kage::Backend> EchoProxy::create(
         const thallium::engine& engine,
         const json& config,
-        const thallium::provider_handle& target,
         const thallium::pool& pool) {
     (void)engine;
-    (void)target;
     (void)pool;
     return std::unique_ptr<kage::Backend>(new EchoProxy(engine, config));
 }

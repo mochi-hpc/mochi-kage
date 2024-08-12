@@ -11,9 +11,9 @@
 using json = nlohmann::json;
 
 /**
- * Echo implementation of an kage Backend.
+ * PassThrough implementation of an kage Backend.
  */
-class EchoProxy : public kage::Backend {
+class PassThroughProxy : public kage::Backend {
 
     thallium::engine m_engine;
     json             m_config;
@@ -24,32 +24,32 @@ class EchoProxy : public kage::Backend {
     /**
      * @brief Constructor.
      */
-    EchoProxy(thallium::engine engine, const json& config);
+    PassThroughProxy(thallium::engine engine, const json& config);
 
     /**
      * @brief Move-constructor.
      */
-    EchoProxy(EchoProxy&&) = default;
+    PassThroughProxy(PassThroughProxy&&) = default;
 
     /**
      * @brief Copy-constructor.
      */
-    EchoProxy(const EchoProxy&) = default;
+    PassThroughProxy(const PassThroughProxy&) = default;
 
     /**
      * @brief Move-assignment operator.
      */
-    EchoProxy& operator=(EchoProxy&&) = default;
+    PassThroughProxy& operator=(PassThroughProxy&&) = default;
 
     /**
      * @brief Copy-assignment operator.
      */
-    EchoProxy& operator=(const EchoProxy&) = default;
+    PassThroughProxy& operator=(const PassThroughProxy&) = default;
 
     /**
      * @brief Destructor.
      */
-    virtual ~EchoProxy() = default;
+    virtual ~PassThroughProxy() = default;
 
     /**
      * @brief Get the proxy's configuration as a JSON-formatted string.
@@ -77,7 +77,7 @@ class EchoProxy : public kage::Backend {
 
     /**
      * @brief Static factory function used by the ProxyFactory to
-     * create a EchoProxy.
+     * create a PassThroughProxy.
      *
      * @param engine Thallium engine
      * @param config JSON configuration for the proxy
