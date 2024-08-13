@@ -59,8 +59,6 @@ find_package (thallium REQUIRED)
 # search for nlohmann/json
 find_package (nlohmann_json REQUIRED)
 find_package (nlohmann_json_schema_validator REQUIRED)
-# search for TCLAP
-find_package (TCLAP REQUIRED)
 # search for spdlog
 find_package (spdlog REQUIRED)
 # search for fmt

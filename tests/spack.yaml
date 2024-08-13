@@ -2,12 +2,11 @@ spack:
   specs:
   - cmake
   - pkgconfig
-  - mochi-thallium@main ^mercury~boostsys~checksum ^libfabric fabrics=tcp,rxm
+  - mochi-thallium ^mercury~boostsys~checksum ^libfabric fabrics=tcp,rxm
   - nlohmann-json
   - nlohmann-json-schema-validator
   - spdlog
   - fmt
-  - tclap
   - mochi-bedrock-module-api
   - cppzmq
   concretizer:
@@ -28,6 +27,6 @@ spack:
     mochi-margo:
       require: "@0.15.0:"
     mochi-thallium:
-      require: "@0.12.0:"
+      require: "@0.13.1:"
     nlohmann-json-schema-validator:
       require: "@2.3.0:"
