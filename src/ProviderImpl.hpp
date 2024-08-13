@@ -44,10 +44,12 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
         tl::remote_procedure proc;
         std::string          name;
+        hg_id_t              client_rpc_id;
 
-        RPC(tl::remote_procedure&& rpc, std::string n)
+        RPC(tl::remote_procedure&& rpc, std::string n, hg_id_t client_id)
         : proc{std::move(rpc)}
-        , name{n} {}
+        , name{n}
+        , client_rpc_id{client_id} {}
 
         RPC(RPC&&) = default;
     };
@@ -125,7 +127,7 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
         try {
             validator.validate(json_config);
         } catch(const std::exception& ex) {
-            error("Error(s) while validating JSON config for warabi provider: {}", ex.what());
+            error("Error(s) while validating JSON config for kage provider: {}", ex.what());
             throw Exception("Invalid JSON configuration (see error logs for information)");
         }
 
@@ -139,13 +141,16 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
         // Export RPCs
         auto& rpcs = json_config["exported_rpcs"];
-        if(m_is_output) {
-            for(auto& name : rpcs) {
+        for(auto& name : rpcs) {
+            auto client_proc = get_engine().define(name);
+            if(m_is_output) {
                 auto rpc = RPC{
-                    m_is_output ?
-                        define(name, &ProviderImpl::forwardRPCtoOutput, m_rpc_pool)
-                        :  get_engine().define(name),
-                    name};
+                    define(name, &ProviderImpl::forwardRPCtoOutput, m_rpc_pool),
+                    name, client_proc.id()};
+                m_rpcs.insert(std::make_pair(rpc.proc.id(), std::move(rpc)));
+            }
+            if(m_is_input) {
+                auto rpc = RPC{std::move(client_proc), name, client_proc.id()};
                 m_rpcs.insert(std::make_pair(rpc.proc.id(), std::move(rpc)));
             }
         }
@@ -160,15 +165,15 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
     ~ProviderImpl() {
         trace("Deregistering provider");
+        if(m_backend) {
+            m_backend->destroy();
+        }
         if(m_is_output) {
             for(auto& p : m_rpcs) {
                 p.second.proc.deregister();
             }
         }
         m_rpcs.clear();
-        if(m_backend) {
-            m_backend->destroy();
-        }
     }
 
     std::string getConfig() const {
@@ -217,23 +222,26 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
     void forwardRPCtoOutput(const tl::request& req) {
         auto rpc_id = HG_Get_info(req.native_handle())->id;
+        // find the corresponding client RPC
+        auto it = m_rpcs.find(rpc_id);
+        auto client_rpc_id = it->second.client_rpc_id;
         Deserializer deserializer{
-            [this, rpc_id, &req](const char* input, size_t input_size) {
+            [this, client_rpc_id, &req](const char* input, size_t input_size) {
                 auto send_response = [&req](const char * output, size_t output_size) {
                     Serializer serializer{output, output_size};
                     req.respond(serializer);
                 };
-                m_backend->forwardOutput(rpc_id, input, input_size, send_response);
+                m_backend->forwardOutput(client_rpc_id, input, input_size, send_response);
             }
         };
         req.get_input().unpack(deserializer);
     }
 
     Result<bool> forwardRPCtoInput(
-            hg_id_t rpc_id, const char* input, size_t input_size,
+            hg_id_t client_rpc_id, const char* input, size_t input_size,
             const std::function<void(const char*, size_t)>& output_cb) {
         Result<bool> result;
-        auto rpc_it = m_rpcs.find(rpc_id);
+        auto rpc_it = m_rpcs.find(client_rpc_id);
         if(rpc_it == m_rpcs.end()) {
             result.success() = false;
             result.error() = "Provider received unknow RPC id";

@@ -9,6 +9,7 @@ spack:
   - fmt
   - tclap
   - mochi-bedrock-module-api
+  - cppzmq
   concretizer:
     unify: true
     reuse: true

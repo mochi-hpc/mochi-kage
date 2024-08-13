@@ -3,6 +3,11 @@ set (server-src-files
      Provider.cpp
      Backend.cpp)
 
+if (ENABLE_ZMQ)
+    list (APPEND server-src-files zmq/ZMQBackend.cpp)
+    set (OPTIONAL_ZMQ cppzmq)
+endif ()
+
 set (module-src-files
      BedrockModule.cpp)
 
@@ -20,7 +25,7 @@ add_library (kage-server ${server-src-files} ${echo-src-files})
 add_library (kage::server ALIAS kage-server)
 target_link_libraries (kage-server
     PUBLIC thallium nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator
-    PRIVATE spdlog::spdlog fmt::fmt coverage_config)
+    PRIVATE spdlog::spdlog fmt::fmt coverage_config ${OPTIONAL_ZMQ})
 target_include_directories (kage-server PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (kage-server BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)

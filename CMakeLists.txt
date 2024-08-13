@@ -20,6 +20,7 @@ option (ENABLE_TESTS    "Build tests" OFF)
 option (ENABLE_EXAMPLES "Build examples" OFF)
 option (ENABLE_BEDROCK  "Build bedrock module" OFF)
 option (ENABLE_COVERAGE "Build with coverage" OFF)
+option (ENABLE_ZMQ      "Build with ZeroMQ support" ON)
 
 # add our cmake module directory to the path
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -67,6 +68,10 @@ find_package (fmt REQUIRED)
 # search of bedrock if needed
 if (${ENABLE_BEDROCK})
     find_package (bedrock-module-api REQUIRED)
+endif ()
+# search for zmq if needed
+if (${ENABLE_ZMQ})
+    find_package (cppzmq REQUIRED)
 endif ()
 
 add_subdirectory (src)
