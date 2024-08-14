@@ -1,7 +1,8 @@
 # set source files
 set (server-src-files
      Provider.cpp
-     Backend.cpp)
+     Backend.cpp
+     margo/MargoBackend.cpp)
 
 if (ENABLE_ZMQ)
     list (APPEND server-src-files zmq/ZMQBackend.cpp)

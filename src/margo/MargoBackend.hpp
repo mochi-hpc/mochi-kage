@@ -3,8 +3,8 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ZMQ_BACKEND_HPP
-#define __ZMQ_BACKEND_HPP
+#ifndef __MARGO_BACKEND_HPP
+#define __MARGO_BACKEND_HPP
 
 #include <zmq.hpp>
 #include <kage/Backend.hpp>
@@ -12,55 +12,49 @@
 using json = nlohmann::json;
 
 /**
- * ZMQ implementation of an kage Backend.
+ * Margo implementation of an kage Backend.
  */
-class ZMQProxy : public kage::Backend {
+class MargoProxy : public kage::Backend {
 
-    json             m_config;
-    thallium::pool   m_pool;
-    kage::InputProxy m_input_proxy;
-    zmq::context_t   m_zmq_context;
-    zmq::socket_t    m_pub_socket;
-    zmq::socket_t    m_sub_socket;
-
-    std::atomic<bool>                   m_need_stop{false};
-    thallium::managed<thallium::thread> m_polling_ult;
+    json                       m_config;
+    kage::InputProxy           m_input_proxy;
+    thallium::engine           m_internal_engine;
+    thallium::endpoint         m_remote_endpoint;
+    thallium::remote_procedure m_rpc;
 
     public:
 
     /**
      * @brief Constructor.
      */
-    ZMQProxy(json&& config,
-             thallium::pool pool,
-             zmq::context_t&& ctx,
-             zmq::socket_t&& pub_socket,
-             zmq::socket_t&& sub_socket);
+    MargoProxy(json&& config,
+               thallium::engine internal_engine,
+               thallium::endpoint remote_endpoint);
 
     /**
      * @brief Move-constructor.
      */
-    ZMQProxy(ZMQProxy&&) = delete;
+    MargoProxy(MargoProxy&&) = delete;
 
     /**
      * @brief Copy-constructor.
      */
-    ZMQProxy(const ZMQProxy&) = delete;
+    MargoProxy(const MargoProxy&) = delete;
 
     /**
      * @brief Move-assignment operator.
      */
-    ZMQProxy& operator=(ZMQProxy&&) = delete;
+    MargoProxy& operator=(MargoProxy&&) = delete;
 
     /**
      * @brief Copy-assignment operator.
      */
-    ZMQProxy& operator=(const ZMQProxy&) = delete;
+    MargoProxy& operator=(const MargoProxy&) = delete;
 
     /**
      * @brief Destructor.
      */
-    virtual ~ZMQProxy() = default;
+    virtual ~MargoProxy() = default;
 
     /**
      * @brief Get the proxy's configuration as a JSON-formatted string.
@@ -88,7 +82,7 @@ class ZMQProxy : public kage::Backend {
 
     /**
      * @brief Static factory function used by the ProxyFactory to
-     * create a ZMQProxy.
+     * create a MargoProxy.
      *
      * @param engine Thallium engine
      * @param config JSON configuration for the proxy
@@ -100,10 +94,6 @@ class ZMQProxy : public kage::Backend {
             const thallium::engine& engine,
             const json& config,
             const thallium::pool& pool);
-
-    private:
-
-    void runPollingLoop();
 };
 
 #endif
