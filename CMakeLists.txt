@@ -2,7 +2,7 @@
 # See COPYRIGHT in top-level directory.
 cmake_minimum_required (VERSION 3.8)
 project (kage C CXX)
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 enable_testing ()
 
 # library version set here (e.g. for shared libs).

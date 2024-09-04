@@ -24,6 +24,8 @@ spack:
     install_tree:
       padded_length: 128
   packages:
+    mercury:
+      require: "@2.4:"
     mochi-margo:
       require: "@0.15.0:"
     mochi-thallium:

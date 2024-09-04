@@ -222,10 +222,12 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
     void forwardRPCtoOutput(const tl::request& req) {
         auto rpc_id = HG_Get_info(req.native_handle())->id;
+        auto payload_size = HG_Get_input_payload_size(req.native_handle());
         // find the corresponding client RPC
         auto it = m_rpcs.find(rpc_id);
         auto client_rpc_id = it->second.client_rpc_id;
         Deserializer deserializer{
+            payload_size,
             [this, client_rpc_id, &req](const char* input, size_t input_size) {
                 auto send_response = [&req](const char * output, size_t output_size) {
                     Serializer serializer{output, output_size};
@@ -251,8 +253,9 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
         Serializer serializer{input, input_size};
         auto output = rpc.proc.on(m_target)(serializer);
+        auto payload_size = HG_Get_output_payload_size(output.native_handle());
 
-        Deserializer deserializer{output_cb};
+        Deserializer deserializer{payload_size, output_cb};
         output.unpack(deserializer);
 
         return result;

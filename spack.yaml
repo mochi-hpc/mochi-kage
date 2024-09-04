@@ -17,6 +17,8 @@ spack:
       lib: [LD_LIBRARY_PATH]
       lib64: [LD_LIBRARY_PATH]
   packages:
+    mercury:
+      require: "@2.4:"
     mochi-margo:
       require: "@0.15.0:"
     mochi-thallium:
