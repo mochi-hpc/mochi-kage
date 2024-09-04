@@ -46,7 +46,7 @@ TEST_CASE("PassThroughProxy test", "[passthrough]") {
     engine.push_finalize_callback([input_provider]() { delete input_provider; });
 
     kage::Provider provider{
-        engine, 42, provider_config,
+        engine, 42, "kage", provider_config,
         thallium::provider_handle{engine.self(), 33}
     };
 

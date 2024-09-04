@@ -73,12 +73,12 @@ TEST_CASE("MargoProxy test", "[margo]") {
     engine.push_finalize_callback([input_provider_2]() { delete input_provider_2; });
 
     kage::Provider provider1{
-        engine, 42, provider_config_1,
+        engine, 42, "kage", provider_config_1,
         thallium::provider_handle{engine.self(), 33}
     };
 
     kage::Provider provider2{
-        engine, 43, provider_config_2,
+        engine, 43, "kage", provider_config_2,
         thallium::provider_handle{engine.self(), 34}
     };
 

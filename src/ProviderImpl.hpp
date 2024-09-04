@@ -78,11 +78,12 @@ class ProviderImpl : public tl::provider<ProviderImpl>, std::enable_shared_from_
 
     ProviderImpl(const tl::engine& engine,
                  uint16_t provider_id,
+                 const char* identity,
                  const std::string& config,
                  const tl::provider_handle& target,
                  const tl::pool& rpc_pool,
                  const tl::pool& proxy_pool)
-    : tl::provider<ProviderImpl>(engine, provider_id, "kage")
+    : tl::provider<ProviderImpl>(engine, provider_id, identity)
     , m_engine{engine}
     , m_rpc_pool{rpc_pool.is_null() ? m_engine.get_handler_pool() : rpc_pool}
     , m_proxy_pool{proxy_pool.is_null() ? m_engine.get_handler_pool() : proxy_pool}

@@ -16,12 +16,13 @@ namespace kage {
 
 Provider::Provider(const tl::engine& engine,
                    uint16_t provider_id,
+                   const char* identity,
                    const std::string& config,
                    const tl::provider_handle& target,
                    const tl::pool& rpc_pool,
                    const tl::pool& proxy_pool)
 : self(std::make_shared<ProviderImpl>(
-        engine, provider_id, config, target, rpc_pool, proxy_pool)) {
+        engine, provider_id, identity, config, target, rpc_pool, proxy_pool)) {
     self->m_backend->setInputProxy(InputProxy{self});
     self->get_engine().push_finalize_callback(this, [p=this]() { p->self.reset(); });
 }

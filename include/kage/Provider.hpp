@@ -29,6 +29,7 @@ class Provider {
      *
      * @param engine Thallium engine to use to receive RPCs.
      * @param provider_id Provider id.
+     * @param identity Identity this provider pretends to be.
      * @param config JSON-formatted configuration.
      * @param target Target of input RPCs, if input provider.
      * @param rpc_pool Argobots pool to use to handle RPCs.
@@ -36,6 +37,7 @@ class Provider {
      */
     Provider(const tl::engine& engine,
              uint16_t provider_id,
+             const char* identity,
              const std::string& config,
              const tl::provider_handle& target = tl::provider_handle{},
              const tl::pool& rpc_pool = tl::pool(),

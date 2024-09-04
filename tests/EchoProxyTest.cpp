@@ -22,7 +22,7 @@ TEST_CASE("EchoProxy test", "[echo]") {
         }
     }
     )";
-    kage::Provider provider(engine, 42, provider_config);
+    kage::Provider provider(engine, 42, "kage", provider_config);
 
     auto rpc = engine.define("my_rpc");
 

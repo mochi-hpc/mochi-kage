@@ -16,7 +16,7 @@ class KageFactory : public bedrock::AbstractServiceFactory {
     KageFactory() {}
 
     void *registerProvider(const bedrock::FactoryArgs &args) override {
-        auto provider = new kage::Provider(args.mid, args.provider_id,
+        auto provider = new kage::Provider(args.mid, args.provider_id, "kage",
                 args.config, tl::provider_handle{}, tl::pool(args.pool));
         return static_cast<void *>(provider);
     }
