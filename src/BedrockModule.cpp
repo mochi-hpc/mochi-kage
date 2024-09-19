@@ -5,71 +5,97 @@
  */
 #include "kage/Provider.hpp"
 #include "kage/ProviderHandle.hpp"
-#include <bedrock/AbstractServiceFactory.hpp>
+
+#include <bedrock/AbstractComponent.hpp>
+
+#include <nlohmann/json.hpp>
 
 namespace tl = thallium;
+using json = nlohmann::json;
 
-class KageFactory : public bedrock::AbstractServiceFactory {
+class KageComponent : public bedrock::AbstractComponent {
+
+    std::unique_ptr<kage::Provider> m_provider;
 
     public:
 
-    KageFactory() {}
+    KageComponent(const tl::engine& engine,
+                  uint16_t provider_id,
+                  const char* identity,
+                  const std::string& config,
+                  tl::provider_handle target,
+                  const tl::pool& rpc_pool,
+                  const tl::pool& proxy_pool)
+    : m_provider{std::make_unique<kage::Provider>(
+        engine, provider_id, identity, config, target, rpc_pool, proxy_pool)}
+    {}
 
-    void *registerProvider(const bedrock::FactoryArgs &args) override {
-        auto provider = new kage::Provider(args.mid, args.provider_id, "kage",
-                args.config, tl::provider_handle{}, tl::pool(args.pool));
-        return static_cast<void *>(provider);
+    void* getHandle() override {
+        return static_cast<void*>(m_provider.get());
     }
 
-    void deregisterProvider(void *p) override {
-        auto provider = static_cast<kage::Provider *>(p);
-        delete provider;
+    std::string getConfig() override {
+        return m_provider->getConfig();
     }
 
-    std::string getProviderConfig(void *p) override {
-        auto provider = static_cast<kage::Provider *>(p);
-        return provider->getConfig();
-    }
+    static std::shared_ptr<bedrock::AbstractComponent>
+        Register(const bedrock::ComponentArgs& args) {
+            tl::pool rpc_pool, proxy_pool;
+            auto config = json::parse(args.config);
+            std::string identity = config["identity"];
+            auto it = args.dependencies.find("rpc_pool");
+            if(it != args.dependencies.end() && !it->second.empty()) {
+                rpc_pool = it->second[0]->getHandle<tl::pool>();
+            }
+            it = args.dependencies.find("proxy_pool");
+            if(it != args.dependencies.end() && !it->second.empty()) {
+                proxy_pool = it->second[0]->getHandle<tl::pool>();
+            }
+            tl::provider_handle target;
+            it = args.dependencies.find("target");
+            if(it != args.dependencies.end() && !it->second.empty()) {
+                target = it->second[0]->getHandle<tl::provider_handle>();
+            }
+            return std::make_shared<KageComponent>(
+                args.engine, args.provider_id, identity.c_str(),
+                args.config, target, rpc_pool, proxy_pool);
+        }
 
-    void *initClient(const bedrock::FactoryArgs& args) override {
-        return static_cast<void*>(new tl::engine{args.engine});
-    }
-
-    void finalizeClient(void *client) override {
-        auto engine = static_cast<tl::engine*>(client);
-        delete engine;
-    }
-
-    std::string getClientConfig(void* c) override {
-        (void)c;
-        return "{}";
-    }
-
-    void *createProviderHandle(void *c, hg_addr_t address,
-            uint16_t provider_id) override {
-        auto engine = static_cast<tl::engine*>(c);
-        auto ph = new kage::ProviderHandle(
-                *engine,
-                address,
-                provider_id,
-                false);
-        return static_cast<void *>(ph);
-    }
-
-    void destroyProviderHandle(void *providerHandle) override {
-        auto ph = static_cast<kage::ProviderHandle *>(providerHandle);
-        delete ph;
-    }
-
-    const std::vector<bedrock::Dependency> &getProviderDependencies() override {
-        static const std::vector<bedrock::Dependency> no_dependency;
-        return no_dependency;
-    }
-
-    const std::vector<bedrock::Dependency> &getClientDependencies() override {
-        static const std::vector<bedrock::Dependency> no_dependency;
-        return no_dependency;
-    }
+    static std::vector<bedrock::Dependency>
+        GetDependencies(const bedrock::ComponentArgs& args) {
+            auto config = json::parse(args.config);
+            if(config.is_object())
+                throw bedrock::Exception{"Configuration for kage provider should be an object"};
+            if(!config.contains("identity") || !config["identity"].is_string())
+                throw bedrock::Exception{
+                    "Configuration for kage provider should contain an "
+                        "\"identity\" field of type string"};
+            std::string identity = config["identity"];
+            std::vector<bedrock::Dependency> dependencies{
+                bedrock::Dependency{
+                    /* name */ "rpc_pool",
+                    /* type */ "pool",
+                    /* is_required */ false,
+                    /* is_array */ false,
+                    /* is_updatable */ false
+                },
+                bedrock::Dependency{
+                    /* name */ "proxy_pool",
+                    /* type */ "pool",
+                    /* is_required */ false,
+                    /* is_array */ false,
+                    /* is_updatable */ false
+                },
+                bedrock::Dependency{
+                    /* name */ "target",
+                    /* type */ identity,
+                    /* is_required */ false,
+                    /* is_array */ false,
+                    /* is_updatable */ false
+                }
+            };
+            return dependencies;
+        }
 };
 
-BEDROCK_REGISTER_MODULE_FACTORY(kage, KageFactory)
+BEDROCK_REGISTER_COMPONENT_TYPE(kage, KageComponent)
