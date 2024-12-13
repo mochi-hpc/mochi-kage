@@ -54,10 +54,6 @@ jobs:
         make
         ctest --output-on-failure
 
-    # Uncomment the step bellow to push the dependencies into the build cache
-    # Note: to be able to push the specs to the build cache,
-    # The repository should have Write access here:
-    # https://github.com/orgs/mochi-hpc/packages/container/mochi-spack-buildcache/settings
 #   - name: Push packages to buildcache and update index
 #     if: ${{ !cancelled() }}
 #     run: |
